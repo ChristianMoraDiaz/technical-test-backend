@@ -11,24 +11,22 @@ datasource db {
 }
 
 model Task {
-  id             Int      @id @default(autoincrement())
+  id             Int       @id @default(autoincrement())
   title          String
   authorId       Int
-  author         User     @relation(name: "Author", fields: [authorId], references: [id])
+  author         User      @relation(name: "Author", fields: [authorId], references: [id])
   assignedUserId Int
-  assignedUser   User     @relation(name: "AssignedUser", fields: [assignedUserId], references: [id])
+  assignedUser   User      @relation(name: "AssignedUser", fields: [assignedUserId], references: [id])
   completed      Boolean
-  creationDate   DateTime @default(now())
+  creationDate   DateTime  @default(now())
   completedDate  DateTime?
-
 }
 
 model User {
-  id              Int      @id @default(autoincrement())
-  name            String   @unique
-  email           String
-  authoredTasks   Task[]   @relation(name: "Author")
-  assignedTasks   Task[]   @relation(name: "AssignedUser")
+  id            Int    @id @default(autoincrement())
+  name          String
+  email         String @unique
+  password      String
+  authoredTasks Task[] @relation(name: "Author")
+  assignedTasks Task[] @relation(name: "AssignedUser")
 }
-
-
