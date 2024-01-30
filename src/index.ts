@@ -16,7 +16,7 @@ app.get("/ping", (_req, res) => {
   res.send("pong");
 });
 
-app.use("/api/diaries", taskRouter);
+app.use("/api/task", taskRouter);
 
 app.listen(PORT, () => {
   console.log(`Server running in ${PORT}`);
