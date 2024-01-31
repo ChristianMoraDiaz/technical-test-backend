@@ -5,12 +5,14 @@ export async function createLog(
   userId: number,
   action: string
 ): Promise<void> {
+  const currentDate = new Date();
+  currentDate.setHours(0, 0, 0, 0);
   await prismaDB.log.create({
     data: {
       taskId,
       userId,
       action,
-      timestamp: new Date(),
+      timestamp: currentDate,
     },
   });
 }
