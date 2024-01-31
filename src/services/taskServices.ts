@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { validationResult } from "express-validator";
-import { prismaDB } from "../db";
+import prismaDB from "../db";
 
 export const gettAllTasksService = async (_req: Request, res: Response) => {
   try {
