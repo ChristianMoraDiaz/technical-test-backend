@@ -1,12 +1,12 @@
 import express from "express";
-import { createTaskSchema, getTaskByIdSchema } from "../schemas/taskSchema";
+import { getTaskByIdSchema } from "../schemas/taskSchema";
 import {
   createTaskService,
-  deleteTask,
-  editTask,
+  deleteTaskService,
+  editTaskService,
   getTaskByIdService,
   gettAllTasksService,
-  setCompletedTask,
+  setCompletedTaskService,
 } from "../services/taskServices";
 
 const router = express.Router();
@@ -15,12 +15,12 @@ router.get("/", gettAllTasksService);
 
 router.get("/:id", getTaskByIdSchema, getTaskByIdService);
 
-router.post("/", createTaskSchema, createTaskService);
+router.post("/", createTaskService);
 
-router.put("/edit/:id", editTask);
+router.put("/edit/:id", editTaskService);
 
-router.put("/completed/:id", setCompletedTask);
+router.put("/completed/:id", setCompletedTaskService);
 
-router.delete("/delete/:id", deleteTask);
+router.delete("/delete/:id", deleteTaskService);
 
 export default router;

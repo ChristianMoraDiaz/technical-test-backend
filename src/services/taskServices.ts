@@ -81,27 +81,54 @@ export const getTaskByIdService = async (req: Request, res: Response) => {
 };
 
 export const createTaskService = async (req: Request, res: Response) => {
-  const errors = validationResult(req);
-
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
-  }
-
   try {
-    const response = await prismaDB.task.create({
-      data: {
-        ...req.body,
+    const { authorEmail, assignedUserId, completed, title } = req.body;
+
+    const author = await prismaDB.user.findUnique({
+      where: {
+        email: authorEmail,
       },
     });
 
-    return res.json(response);
+    if (!author) {
+      return res.status(404).json({ message: "Author not found" });
+    }
+
+    const parsedAssignedUserId = parseInt(assignedUserId);
+
+    const assignedUser = await prismaDB.user.findUnique({
+      where: {
+        id: parsedAssignedUserId,
+      },
+    });
+
+    if (!assignedUser) {
+      return res
+        .status(400)
+        .json({ message: "Assigned user ID does not exist" });
+    }
+
+    const isCompleted = completed === "true" ? true : false;
+
+    const createdTask = await prismaDB.task.create({
+      data: {
+        title,
+        authorId: author.id,
+        assignedUserId: parsedAssignedUserId,
+        completed: isCompleted,
+      },
+    });
+
+    return res
+      .status(201)
+      .json({ message: "Task created successfully", task: createdTask });
   } catch (error) {
     console.error(error);
-    return res.status(500).json("Error in the creation");
+    return res.status(500).json({ message: "Error in the creation process" });
   }
 };
 
-export const setCompletedTask = async (req: Request, res: Response) => {
+export const setCompletedTaskService = async (req: Request, res: Response) => {
   const errors = validationResult(req);
 
   if (!errors.isEmpty()) {
@@ -156,7 +183,7 @@ export const setCompletedTask = async (req: Request, res: Response) => {
   }
 };
 
-export const deleteTask = async (req: Request, res: Response) => {
+export const deleteTaskService = async (req: Request, res: Response) => {
   try {
     const taskId = +req.params.id;
     const userEmail = req.body.userEmail;
@@ -205,7 +232,7 @@ export const deleteTask = async (req: Request, res: Response) => {
   }
 };
 
-export const editTask = async (req: Request, res: Response) => {
+export const editTaskService = async (req: Request, res: Response) => {
   try {
     const taskId = +req.params.id;
     const { userEmail, newAssignedUserId, title, completed } = req.body;
