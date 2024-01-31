@@ -20,6 +20,7 @@ model Task {
   completed      Boolean   @default(false)
   creationDate   DateTime  @default(now())
   completedDate  DateTime?
+  Log            Log[]
 }
 
 model User {
@@ -29,4 +30,15 @@ model User {
   password      String
   authoredTasks Task[] @relation(name: "Author")
   assignedTasks Task[] @relation(name: "AssignedUser")
+  Log           Log[]
+}
+
+model Log {
+  id        Int      @id @default(autoincrement())
+  task      Task     @relation(fields: [taskId], references: [id])
+  taskId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+  action    String
+  timestamp DateTime
 }

@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { validationResult } from "express-validator";
 import nodemailer from "nodemailer";
 import prismaDB from "../db";
+import { createLog } from "./logServices";
 
 export const gettAllTasksService = async (_req: Request, res: Response) => {
   try {
@@ -120,6 +121,8 @@ export const createTaskService = async (req: Request, res: Response) => {
       },
     });
 
+    await createLog(createdTask.id, authorEmail, "Task created");
+
     return res
       .status(201)
       .json({ message: "Task created successfully", task: createdTask });
@@ -211,6 +214,8 @@ export const setCompletedTaskService = async (req: Request, res: Response) => {
       return res.status(404).json({ message: "Author not found" });
     }
 
+    await createLog(taskId, userEmail, "Task completed");
+
     await sendEmail(author.email, userEmail);
 
     return res.json(updatedTask);
@@ -261,6 +266,8 @@ export const deleteTaskService = async (req: Request, res: Response) => {
         id: taskId,
       },
     });
+
+    await createLog(taskId, userEmail, "Task deleted");
 
     return res.status(204).send();
   } catch (error) {
@@ -330,6 +337,8 @@ export const editTaskService = async (req: Request, res: Response) => {
       },
       data: dataToUpdate,
     });
+
+    await createLog(taskId, userEmail, "Task edited");
 
     return res.status(200).json({ message: "Task updated successfully" });
   } catch (error) {
