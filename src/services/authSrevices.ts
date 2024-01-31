@@ -30,3 +30,28 @@ export const userRegister = async (req: Request, res: Response) => {
     return res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
+export const userLogin = async (req: Request, res: Response) => {
+  try {
+    const userExist = await prismaDB.user.findUnique({
+      where: {
+        email: req.body.email,
+      },
+    });
+
+    if (!userExist)
+      return res.status(500).json({ message: "Email doesn't exists" });
+
+    const matchPassword = await bcrypt.compare(
+      req.body.password,
+      userExist.password
+    );
+
+    if (!matchPassword)
+      return res.status(500).json({ message: "Wrong password" });
+
+    return res.status(200).json(userExist);
+  } catch (error) {
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+};

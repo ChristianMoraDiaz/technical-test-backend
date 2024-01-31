@@ -101,7 +101,7 @@ export const createTaskService = async (req: Request, res: Response) => {
   }
 };
 
-export const updateTaskService = async (req: Request, res: Response) => {
+export const setCompletedTask = async (req: Request, res: Response) => {
   const errors = validationResult(req);
 
   if (!errors.isEmpty()) {
@@ -109,6 +109,7 @@ export const updateTaskService = async (req: Request, res: Response) => {
   }
 
   const taskId = +req.params.id;
+  const userEmail = req.body.userEmail;
 
   try {
     const existingTask = await prismaDB.task.findFirst({
@@ -118,7 +119,23 @@ export const updateTaskService = async (req: Request, res: Response) => {
     });
 
     if (!existingTask) {
-      return res.status(404).json({ error: "Task not found" });
+      return res.status(404).json({ message: "Task not found" });
+    }
+
+    const userId = await prismaDB.user.findFirst({
+      where: {
+        email: userEmail,
+      },
+    });
+
+    if (!userId) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (existingTask.assignedUserId !== userId.id) {
+      return res
+        .status(403)
+        .json({ message: "You are not authorized to update this task" });
     }
 
     const updatedTask = await prismaDB.task.update({
@@ -127,13 +144,56 @@ export const updateTaskService = async (req: Request, res: Response) => {
       },
       data: {
         ...existingTask,
-        ...req.body,
+        completed: true,
+        completedDate: new Date(),
       },
     });
 
     return res.json(updatedTask);
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ error: "Error in the update process" });
+    return res.status(500).json({ message: "Error in the update process" });
+  }
+};
+
+export const deleteTask = async (req: Request, res: Response) => {
+  try {
+    const taskId = +req.params.id;
+    const userEmail = req.body.userEmail;
+
+    const task = await prismaDB.task.findFirst({
+      where: {
+        id: taskId,
+      },
+      select: {
+        id: true,
+        author: {
+          select: {
+            email: true,
+          },
+        },
+      },
+    });
+
+    if (!task) {
+      return res.status(404).json({ message: "Task not found" });
+    }
+
+    if (task.author.email !== userEmail) {
+      return res
+        .status(403)
+        .json({ message: "You are not authorized to delete this task" });
+    }
+
+    await prismaDB.task.delete({
+      where: {
+        id: taskId,
+      },
+    });
+
+    return res.status(204).send();
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Error in the delete process" });
   }
 };
