@@ -167,6 +167,7 @@ export const deleteTask = async (req: Request, res: Response) => {
       },
       select: {
         id: true,
+        completed: true,
         author: {
           select: {
             email: true,
@@ -183,6 +184,12 @@ export const deleteTask = async (req: Request, res: Response) => {
       return res
         .status(403)
         .json({ message: "You are not authorized to delete this task" });
+    }
+
+    if (task.completed) {
+      return res
+        .status(403)
+        .json({ message: "Cannot delete a completed task" });
     }
 
     await prismaDB.task.delete({
