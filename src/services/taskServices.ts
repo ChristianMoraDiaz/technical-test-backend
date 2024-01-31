@@ -121,7 +121,7 @@ export const createTaskService = async (req: Request, res: Response) => {
       },
     });
 
-    await createLog(createdTask.id, authorEmail, "Task created");
+    await createLog(createdTask.id, author.id, "Task created");
 
     return res
       .status(201)
@@ -179,17 +179,17 @@ export const setCompletedTaskService = async (req: Request, res: Response) => {
       return res.status(404).json({ message: "Task not found" });
     }
 
-    const userId = await prismaDB.user.findFirst({
+    const user = await prismaDB.user.findFirst({
       where: {
         email: userEmail,
       },
     });
 
-    if (!userId) {
+    if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    if (existingTask.assignedUserId !== userId.id) {
+    if (existingTask.assignedUserId !== user.id) {
       return res
         .status(403)
         .json({ message: "You are not authorized to update this task" });
@@ -214,7 +214,7 @@ export const setCompletedTaskService = async (req: Request, res: Response) => {
       return res.status(404).json({ message: "Author not found" });
     }
 
-    await createLog(taskId, userEmail, "Task completed");
+    await createLog(taskId, user.id, "Task completed");
 
     await sendEmail(author.email, userEmail);
 
@@ -229,6 +229,16 @@ export const deleteTaskService = async (req: Request, res: Response) => {
   try {
     const taskId = +req.params.id;
     const userEmail = req.body.userEmail;
+
+    const user = await prismaDB.user.findFirst({
+      where: {
+        email: userEmail,
+      },
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
 
     const task = await prismaDB.task.findFirst({
       where: {
@@ -267,7 +277,7 @@ export const deleteTaskService = async (req: Request, res: Response) => {
       },
     });
 
-    await createLog(taskId, userEmail, "Task deleted");
+    await createLog(taskId, user.id, "Task deleted");
 
     return res.status(204).send();
   } catch (error) {
@@ -338,7 +348,17 @@ export const editTaskService = async (req: Request, res: Response) => {
       data: dataToUpdate,
     });
 
-    await createLog(taskId, userEmail, "Task edited");
+    const user = await prismaDB.user.findFirst({
+      where: {
+        email: userEmail,
+      },
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    await createLog(taskId, user.id, "Task edited");
 
     return res.status(200).json({ message: "Task updated successfully" });
   } catch (error) {
