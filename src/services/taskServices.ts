@@ -204,3 +204,72 @@ export const deleteTask = async (req: Request, res: Response) => {
     return res.status(500).json({ message: "Error in the delete process" });
   }
 };
+
+export const editTask = async (req: Request, res: Response) => {
+  try {
+    const taskId = +req.params.id;
+    const { userEmail, newAssignedUserId, title, completed } = req.body;
+
+    const parsedNewAssignedUserId = parseInt(newAssignedUserId);
+
+    const task = await prismaDB.task.findFirst({
+      where: {
+        id: taskId,
+      },
+      select: {
+        id: true,
+        author: {
+          select: {
+            email: true,
+          },
+        },
+      },
+    });
+
+    if (!task) {
+      return res.status(404).json({ message: "Task not found" });
+    }
+
+    if (task.author.email !== userEmail) {
+      return res
+        .status(403)
+        .json({ message: "You are not authorized to edit this task" });
+    }
+
+    const newAssignedUser = await prismaDB.user.findUnique({
+      where: {
+        id: parsedNewAssignedUserId,
+      },
+    });
+
+    if (!newAssignedUser) {
+      return res
+        .status(400)
+        .json({ message: "New assigned user ID does not exist" });
+    }
+
+    const isCompleted = completed === "true" ? true : false;
+
+    const dataToUpdate: any = {
+      assignedUserId: parsedNewAssignedUserId,
+      title,
+      completed: isCompleted,
+    };
+
+    if (completed === false) {
+      dataToUpdate.completedDate = null;
+    }
+
+    await prismaDB.task.update({
+      where: {
+        id: taskId,
+      },
+      data: dataToUpdate,
+    });
+
+    return res.status(200).json({ message: "Task updated successfully" });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Error in the update process" });
+  }
+};
