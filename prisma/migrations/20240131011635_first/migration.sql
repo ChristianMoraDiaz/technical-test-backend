@@ -4,7 +4,7 @@ CREATE TABLE "Task" (
     "title" TEXT NOT NULL,
     "authorId" INTEGER NOT NULL,
     "assignedUserId" INTEGER NOT NULL,
-    "completed" BOOLEAN NOT NULL,
+    "completed" BOOLEAN NOT NULL DEFAULT false,
     "creationDate" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "completedDate" DATETIME,
     CONSTRAINT "Task_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "User" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,

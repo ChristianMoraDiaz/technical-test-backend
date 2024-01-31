@@ -17,7 +17,7 @@ model Task {
   author         User      @relation(name: "Author", fields: [authorId], references: [id])
   assignedUserId Int
   assignedUser   User      @relation(name: "AssignedUser", fields: [assignedUserId], references: [id])
-  completed      Boolean
+  completed      Boolean   @default(false)
   creationDate   DateTime  @default(now())
   completedDate  DateTime?
 }
