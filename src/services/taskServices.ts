@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { validationResult } from "express-validator";
+import nodemailer from "nodemailer";
 import prismaDB from "../db";
 
 export const gettAllTasksService = async (_req: Request, res: Response) => {
@@ -128,6 +129,32 @@ export const createTaskService = async (req: Request, res: Response) => {
   }
 };
 
+async function sendEmail(authorEmail: string, assigneduserEmail: string) {
+  try {
+    let transporter = nodemailer.createTransport({
+      host: "smtp.example.com",
+      port: 587,
+      secure: false,
+      auth: {
+        user: "your_username",
+        pass: "your_password",
+      },
+    });
+
+    let mailOptions = {
+      from: `${assigneduserEmail}`,
+      to: authorEmail,
+      subject: "Task Completed",
+      text: "Your task has been completed.",
+    };
+
+    let info = await transporter.sendMail(mailOptions);
+    console.log("Email sent: " + info.response);
+  } catch (error) {
+    console.error("Error sending email: ", error);
+  }
+}
+
 export const setCompletedTaskService = async (req: Request, res: Response) => {
   const errors = validationResult(req);
 
@@ -175,6 +202,16 @@ export const setCompletedTaskService = async (req: Request, res: Response) => {
         completedDate: new Date(),
       },
     });
+
+    const author = await prismaDB.user.findFirst({
+      where: { id: existingTask.authorId },
+    });
+
+    if (!author) {
+      return res.status(404).json({ message: "Author not found" });
+    }
+
+    await sendEmail(author.email, userEmail);
 
     return res.json(updatedTask);
   } catch (error) {
