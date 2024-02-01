@@ -3,9 +3,10 @@
   "version": "1.0.0",
   "description": "technical-test-backend",
   "main": "index.js",
+  "type": "commonjs",
   "scripts": {
     "dev": "ts-node-dev src/index.ts",
-    "start": "node index.js",
+    "start": "node build/index.js",
     "tsc": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
